@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -50,29 +49,42 @@ func (se ScanErr) Error() string {
 	return fmt.Sprintf("failed to scan field %d of row %d: %v", se.Field, se.Row, se.err)
 }
 
-// scan an Data API row at index 'ridx' from the provided records into 'dst'
-func scan(ridx int, recs [][]*rdsdataservice.Field, dst ...interface{}) (err error) {
-	switch {
-	case ridx < 0:
-		return ScanErr{ScanErrKindNextNotCalled, errors.New("next not called before scan"), ridx, -1}
-	case ridx > len(recs)-1:
-		return ScanErr{ScanErrKindRowOutOfRange, errors.New("scan position passed nr of records"), ridx, -1}
-	case len(recs[ridx]) != len(dst):
-		return ScanErr{ScanErrTooManyFields, errors.New("too many fields for nr of scan values"), ridx, -1}
-	}
+// // scan an Data API row at index 'ridx' from the provided records into 'dst'
+// func scan(ridx int, recs [][]*rdsdataservice.Field, dst ...interface{}) (err error) {
+// 	switch {
+// 	case ridx < 0:
+// 		return ScanErr{ScanErrKindNextNotCalled, errors.New("next not called before scan"), ridx, -1}
+// 	case ridx > len(recs)-1:
+// 		return ScanErr{ScanErrKindRowOutOfRange, errors.New("scan position passed nr of records"), ridx, -1}
+// 	case len(recs[ridx]) != len(dst):
+// 		return ScanErr{ScanErrTooManyFields, errors.New("too many fields for nr of scan values"), ridx, -1}
+// 	}
 
-	for fidx, f := range recs[ridx] {
-		err = scanField(f, dst[fidx])
-		if serr, ok := err.(ScanErr); ok {
-			serr.Row = ridx
-			serr.Field = fidx
-			return serr
-		} else if err != nil {
-			return ScanErr{0, err, ridx, fidx}
+// 	for fidx, f := range recs[ridx] {
+// 		err = scanField(f, dst[fidx])
+// 		if serr, ok := err.(ScanErr); ok {
+// 			serr.Row = ridx
+// 			serr.Field = fidx
+// 			return serr
+// 		} else if err != nil {
+// 			return ScanErr{0, err, ridx, fidx}
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+// Scan copies fields frow row 'row' into the valuees pointed to by 'dest'. The number of values in
+// dest must be the same as the number of columns in the row.
+func Scan(row []*rdsdataservice.Field, dest ...interface{}) (err error) {
+	for i, f := range row {
+		err = scanField(f, dest[i])
+		if err != nil {
+			return
 		}
 	}
 
-	return nil
+	return
 }
 
 // scanField will attempt to scan the provided field into 'dst' if it has a supported type
