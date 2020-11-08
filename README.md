@@ -6,4 +6,4 @@ Interact with the AWS Aurora Data API using an interface that resembles "databas
              *uint64 instead of only int64
 - [ ] SHOULD document the types that scan supports similar to how the stdlib does it: 
              https://github.com/golang/go/blob/master/src/database/sql/sql.go
-   
+- [ ] COULD  simplify the scan errors, we got two now but one should be plenty
