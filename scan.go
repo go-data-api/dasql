@@ -1,4 +1,4 @@
-package db
+package dasql
 
 import (
 	"database/sql"
