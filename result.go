@@ -7,5 +7,6 @@ type Result interface{}
 
 // daResult implements the Result interface for the Data API
 type daResult struct {
-	out *rdsdataservice.ExecuteStatementOutput
+	genFields []*rdsdataservice.Field
+	recs      [][]*rdsdataservice.Field
 }

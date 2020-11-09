@@ -8,10 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
 func TestTxExec(t *testing.T) {
-	da, ctx := &stubDA{}, context.Background()
+	da, ctx := &stubDA{nextESO: &rdsdataservice.ExecuteStatementOutput{}}, context.Background()
 	db := New(da, "res", "sec")
 	tx := &daTx{"1234", db, ctx}
 

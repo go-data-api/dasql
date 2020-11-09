@@ -28,4 +28,9 @@ type DA interface {
 		aws.Context,
 		*rdsdataservice.RollbackTransactionInput,
 		...request.Option) (*rdsdataservice.RollbackTransactionOutput, error)
+
+	BatchExecuteStatementWithContext(
+		aws.Context,
+		*rdsdataservice.BatchExecuteStatementInput,
+		...request.Option) (*rdsdataservice.BatchExecuteStatementOutput, error)
 }

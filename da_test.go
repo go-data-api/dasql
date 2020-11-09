@@ -24,6 +24,10 @@ type stubDA struct {
 	lastRTI  *rdsdataservice.RollbackTransactionInput
 	nextRTO  *rdsdataservice.RollbackTransactionOutput
 	nextRTOE error
+
+	lastBESI  *rdsdataservice.BatchExecuteStatementInput
+	nextBESO  *rdsdataservice.BatchExecuteStatementOutput
+	nextBESOE error
 }
 
 func (s *stubDA) ExecuteStatementWithContext(
@@ -56,4 +60,12 @@ func (s *stubDA) RollbackTransactionWithContext(
 	opts ...request.Option) (out *rdsdataservice.RollbackTransactionOutput, err error) {
 	s.lastRTI = in
 	return s.nextRTO, s.nextRTOE
+}
+
+func (s *stubDA) BatchExecuteStatementWithContext(
+	ctx aws.Context,
+	in *rdsdataservice.BatchExecuteStatementInput,
+	opts ...request.Option) (*rdsdataservice.BatchExecuteStatementOutput, error) {
+	s.lastBESI = in
+	return s.nextBESO, s.nextBESOE
 }

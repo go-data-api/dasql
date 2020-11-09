@@ -12,7 +12,7 @@ import (
 )
 
 func TestDBExecOK(t *testing.T) {
-	da, ctx := &stubDA{}, context.Background()
+	da, ctx := &stubDA{nextESO: &rdsdataservice.ExecuteStatementOutput{}}, context.Background()
 	db := New(da, "arn:aws:rds:", "arn:aws:secret:")
 	query := `SELECT * FROM foo WHERE bar = :fbar`
 
@@ -95,6 +95,57 @@ func TestDBBeginAwsErr(t *testing.T) {
 	da := &stubDA{nextBTOE: awserr.New("400", "foo", nil)}
 
 	_, err := New(da, "", "").Tx(nil)
+	if err == nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	var aerr awserr.Error
+	if !errors.As(err, &aerr) {
+		t.Fatalf("got: %T", err)
+	}
+}
+
+func TestDBBatch(t *testing.T) {
+	beso := &rdsdataservice.BatchExecuteStatementOutput{
+		UpdateResults: []*rdsdataservice.UpdateResult{
+			{GeneratedFields: []*rdsdataservice.Field{}}, {}},
+	}
+	da, ctx := &stubDA{nextBESO: beso}, context.Background()
+	db := New(da, "arn:aws:rds:", "arn:aws:secret:")
+
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).
+		Append(sql.Named("foo", "foo1")).
+		Append(sql.Named("foo", "foo1"))
+
+	res, err := db.ExecBatch(ctx, b)
+	if err != nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	if len(res) != 2 || res[0].(*daResult).genFields == nil {
+		t.Fatalf("got: %v", res)
+	}
+}
+
+func TestDBBatchArgErr(t *testing.T) {
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).Append(sql.Named("foo", func() {}))
+
+	_, err := New(nil, "", "").ExecBatch(nil, b)
+	if err == nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	var aerr ArgErr
+	if !errors.As(err, &aerr) {
+		t.Fatalf("got: %T", err)
+	}
+}
+
+func TestDBBatchAwsErr(t *testing.T) {
+	da := &stubDA{nextBESOE: awserr.New("400", "foo", nil)}
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).Append(sql.Named("foo", "bar"))
+
+	_, err := New(da, "", "").ExecBatch(nil, b)
 	if err == nil {
 		t.Fatalf("got: %v", err)
 	}
