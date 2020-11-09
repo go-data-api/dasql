@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
-	"github.com/aws/aws-sdk-go/service/rdsdataservice/rdsdataserviceiface"
 )
 
 // DB can be used to execute SQL using the AWS Aurora Data API
@@ -12,12 +11,12 @@ type DB struct {
 	secretARN   string
 	resourceARN string
 
-	api rdsdataserviceiface.RDSDataServiceAPI
+	api DA
 }
 
 // New initializes the database abstraction
-func New(api rdsdataserviceiface.RDSDataServiceAPI, resourceARN, secretARN string) *DB {
-	return &DB{resourceARN, secretARN, api}
+func New(da DA, resourceARN, secretARN string) *DB {
+	return &DB{resourceARN, secretARN, da}
 }
 
 // Exec executes SQL.The args are for any placeholder parameters in the query.
