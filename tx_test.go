@@ -2,6 +2,7 @@ package dasql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 	"testing"
@@ -103,5 +104,32 @@ func TestTxRollbackErr(t *testing.T) {
 	var aerr awserr.Error
 	if !errors.As(err, &aerr) {
 		t.Fatalf("got: %T", err)
+	}
+}
+
+func TestTxBatchExec(t *testing.T) {
+	beso := &rdsdataservice.BatchExecuteStatementOutput{
+		UpdateResults: []*rdsdataservice.UpdateResult{
+			{GeneratedFields: []*rdsdataservice.Field{}}, {}},
+	}
+
+	da, ctx := &stubDA{nextBESO: beso}, context.Background()
+	db := New(da, "res", "sec")
+	tx := &daTx{"1234", db, ctx}
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).
+		Append(sql.Named("foo", "foo1")).
+		Append(sql.Named("foo", "foo1"))
+
+	res, err := tx.ExecBatch(ctx, b)
+	if err != nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	if act := aws.StringValue(da.lastBESI.TransactionId); act != "1234" {
+		t.Fatalf("got: %v", act)
+	}
+
+	if res == nil || len(res) != 2 {
+		t.Fatalf("got: %v", res)
 	}
 }

@@ -12,6 +12,7 @@ type Tx interface {
 	Exec(ctx context.Context, q string, args ...interface{}) (Result, error)
 	Commit() error
 	Rollback() error
+	ExecBatch(ctx context.Context, b *Batch) ([]Result, error)
 }
 
 // daTx implements the Tx interface for the Data API
@@ -24,6 +25,11 @@ type daTx struct {
 // Exec executes sql inside of the transaction
 func (tx daTx) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
 	return tx.db.exec(ctx, tx.id, q, args...)
+}
+
+// ExecBatch executes the batch as part the transaction
+func (tx daTx) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
+	return tx.db.execBatch(ctx, tx.id, b)
 }
 
 // Commit the transaction
