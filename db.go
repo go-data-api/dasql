@@ -2,6 +2,7 @@ package dasql
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
@@ -11,12 +12,12 @@ type DB struct {
 	secretARN   string
 	resourceARN string
 
-	api DA
+	da DA
 }
 
 // New initializes the database abstraction
 func New(da DA, resourceARN, secretARN string) *DB {
-	return &DB{resourceARN, secretARN, da}
+	return &DB{secretARN, resourceARN, da}
 }
 
 // Exec executes SQL.The args are for any placeholder parameters in the query.
@@ -28,19 +29,22 @@ func (db *DB) Exec(ctx context.Context, q string, args ...interface{}) (Result, 
 func (db *DB) exec(ctx context.Context, tid string, q string, args ...interface{}) (Result, error) {
 	params, err := ConvertArgs(args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert arguments: %w", err)
 	}
 
 	var in rdsdataservice.ExecuteStatementInput
 	in.SetResourceArn(db.resourceARN)
-	in.SetSecretArn(db.resourceARN)
+	in.SetSecretArn(db.secretARN)
 	in.SetParameters(params)
 	in.SetSql(q)
 	if tid != "" {
 		in.SetTransactionId(tid)
 	}
 
-	// @TODO finish this
+	out, err := db.da.ExecuteStatementWithContext(ctx, &in)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute statement: %w", err)
+	}
 
-	return nil, nil
+	return &daResult{out}, nil
 }

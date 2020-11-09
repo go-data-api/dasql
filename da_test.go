@@ -8,30 +8,33 @@ import (
 
 var _ DA = &stubDA{}
 
-type stubDA struct{}
+type stubDA struct {
+	lastESI *rdsdataservice.ExecuteStatementInput // last execute statement input
+}
 
-func (stubDA) ExecuteStatementWithContext(
-	aws.Context,
-	*rdsdataservice.ExecuteStatementInput,
-	...request.Option) (out *rdsdataservice.ExecuteStatementOutput, err error) {
+func (s *stubDA) ExecuteStatementWithContext(
+	ctx aws.Context,
+	in *rdsdataservice.ExecuteStatementInput,
+	opts ...request.Option) (out *rdsdataservice.ExecuteStatementOutput, err error) {
+	s.lastESI = in
 	return
 }
 
-func (stubDA) BeginTransactionWithContext(
+func (s *stubDA) BeginTransactionWithContext(
 	aws.Context,
 	*rdsdataservice.BeginTransactionInput,
 	...request.Option) (out *rdsdataservice.BeginTransactionOutput, err error) {
 	return
 }
 
-func (stubDA) CommitTransactionWithContext(
+func (s *stubDA) CommitTransactionWithContext(
 	aws.Context,
 	*rdsdataservice.CommitTransactionInput,
 	...request.Option) (out *rdsdataservice.CommitTransactionOutput, err error) {
 	return
 }
 
-func (stubDA) RollbackTransactionWithContext(
+func (s *stubDA) RollbackTransactionWithContext(
 	aws.Context,
 	*rdsdataservice.RollbackTransactionInput,
 	...request.Option) (out *rdsdataservice.RollbackTransactionOutput, err error) {
