@@ -41,7 +41,7 @@ func (tx daTx) Commit() error {
 
 	_, err := tx.db.da.CommitTransactionWithContext(tx.ctx, in)
 	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("dasql: failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -56,7 +56,7 @@ func (tx daTx) Rollback() error {
 
 	_, err := tx.db.da.RollbackTransactionWithContext(tx.ctx, in)
 	if err != nil {
-		return fmt.Errorf("failed to rollback transaction: %w", err)
+		return fmt.Errorf("dasql: failed to rollback transaction: %w", err)
 	}
 
 	return nil

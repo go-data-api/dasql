@@ -29,7 +29,7 @@ func (db *DB) Tx(ctx context.Context) (Tx, error) {
 
 	out, err := db.da.BeginTransactionWithContext(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("dasql: failed to begin transaction: %w", err)
 	}
 
 	return &daTx{aws.StringValue(out.TransactionId), db, ctx}, nil
@@ -44,7 +44,7 @@ func (db *DB) Exec(ctx context.Context, q string, args ...interface{}) (Result, 
 func (db *DB) exec(ctx context.Context, tid string, q string, args ...interface{}) (Result, error) {
 	params, err := ConvertArgs(args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert arguments: %w", err)
+		return nil, fmt.Errorf("dasql: failed to convert arguments: %w", err)
 	}
 
 	in := (&rdsdataservice.ExecuteStatementInput{}).
@@ -59,10 +59,10 @@ func (db *DB) exec(ctx context.Context, tid string, q string, args ...interface{
 
 	out, err := db.da.ExecuteStatementWithContext(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute statement: %w", err)
+		return nil, fmt.Errorf("dasql: failed to execute statement: %w", err)
 	}
 
-	return &daResult{out.GeneratedFields, out.Records}, nil
+	return &daResult{out.GeneratedFields, out.Records, -1}, nil
 }
 
 // ExecBatch will execute the batch
@@ -92,11 +92,11 @@ func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Result
 
 	out, err := db.da.BatchExecuteStatementWithContext(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("failed to batch execute statement: %w", err)
+		return nil, fmt.Errorf("dasql: failed to batch execute statement: %w", err)
 	}
 
 	for _, upres := range out.UpdateResults {
-		res = append(res, &daResult{genFields: upres.GeneratedFields})
+		res = append(res, &daResult{genFields: upres.GeneratedFields, pos: -1})
 	}
 
 	return res, nil
