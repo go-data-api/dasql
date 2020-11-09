@@ -23,6 +23,10 @@ fix that: https://github.com/aws/aws-sdk-go/issues/3628
 
 - Data API limits the operations for prepared statements to INSERT, UPDATE and DELETE queries
 
+- The adapted sql reads all rows into memory and closes the rows. This is to mimick the lack of
+streaming in data api version. If you're app requires streaming a large data set this is not 
+your tool.
+
 ## backlog
 - [ ] SHOULD implement scanning into *int, *int8, *int16, *int32, *uint, *uint8, *uint16, *uint32, 
              *uint64 instead of only int64

@@ -35,7 +35,12 @@ func (db *DB) Tx(ctx context.Context) (Tx, error) {
 	return &daTx{aws.StringValue(out.TransactionId), db, ctx}, nil
 }
 
-// Exec executes SQL.The args are for any placeholder parameters in the query.
+// Query queries SQL.The args are for any named parameters in the query.
+func (db *DB) Query(ctx context.Context, q string, args ...interface{}) (Result, error) {
+	return db.exec(ctx, "", q, args...)
+}
+
+// Exec executes SQL.The args are for any named parameters in the query.
 func (db *DB) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
 	return db.exec(ctx, "", q, args...)
 }
