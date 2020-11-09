@@ -32,7 +32,7 @@ func (db *DB) Tx(ctx context.Context) (Tx, error) {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	return &daTx{aws.StringValue(out.TransactionId), db}, nil
+	return &daTx{aws.StringValue(out.TransactionId), db, ctx}, nil
 }
 
 // Exec executes SQL.The args are for any placeholder parameters in the query.

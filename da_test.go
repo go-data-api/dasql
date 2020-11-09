@@ -16,6 +16,10 @@ type stubDA struct {
 	lastBTI  *rdsdataservice.BeginTransactionInput
 	nextBTO  *rdsdataservice.BeginTransactionOutput
 	nextBTOE error
+
+	lastCTI  *rdsdataservice.CommitTransactionInput
+	nextCTO  *rdsdataservice.CommitTransactionOutput
+	nextCTOE error
 }
 
 func (s *stubDA) ExecuteStatementWithContext(
@@ -35,10 +39,11 @@ func (s *stubDA) BeginTransactionWithContext(
 }
 
 func (s *stubDA) CommitTransactionWithContext(
-	aws.Context,
-	*rdsdataservice.CommitTransactionInput,
-	...request.Option) (out *rdsdataservice.CommitTransactionOutput, err error) {
-	return
+	ctx aws.Context,
+	in *rdsdataservice.CommitTransactionInput,
+	opts ...request.Option) (out *rdsdataservice.CommitTransactionOutput, err error) {
+	s.lastCTI = in
+	return s.nextCTO, s.nextCTOE
 }
 
 func (s *stubDA) RollbackTransactionWithContext(

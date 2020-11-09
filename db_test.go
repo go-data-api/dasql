@@ -86,7 +86,7 @@ func TestDBBeginOK(t *testing.T) {
 		t.Fatalf("got: %v", act)
 	}
 
-	if tx == nil || tx.(*daTx).id != "1234" {
+	if tx == nil || tx.(*daTx).id != "1234" || tx.(*daTx).ctx != ctx {
 		t.Fatalf("got: %v", tx)
 	}
 }

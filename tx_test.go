@@ -2,15 +2,17 @@ package dasql
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 func TestTxExec(t *testing.T) {
 	da, ctx := &stubDA{}, context.Background()
 	db := New(da, "res", "sec")
-	tx := &daTx{"1234", db}
+	tx := &daTx{"1234", db, ctx}
 
 	res, err := tx.Exec(ctx, `SELECT * FROM foo`)
 	if err != nil {
@@ -23,5 +25,39 @@ func TestTxExec(t *testing.T) {
 
 	if res == nil {
 		t.Fatalf("got: %v", res)
+	}
+}
+
+func TestTxCommit(t *testing.T) {
+	da, ctx := &stubDA{}, context.Background()
+	db := New(da, "res", "sec")
+	tx := &daTx{"1234", db, ctx}
+
+	err := tx.Commit()
+	if err != nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	if act := aws.StringValue(da.lastCTI.ResourceArn); act != "res" {
+		t.Fatalf("got: %v", act)
+	}
+
+	if act := aws.StringValue(da.lastCTI.SecretArn); act != "sec" {
+		t.Fatalf("got: %v", act)
+	}
+}
+
+func TestTxCommitErr(t *testing.T) {
+	da, ctx := &stubDA{nextCTOE: awserr.New("400", "foo", nil)}, context.Background()
+	tx := &daTx{"1234", New(da, "", ""), ctx}
+
+	err := tx.Commit()
+	if err == nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	var aerr awserr.Error
+	if !errors.As(err, &aerr) {
+		t.Fatalf("got: %T", err)
 	}
 }
