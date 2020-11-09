@@ -117,8 +117,8 @@ func TestTxBatchExec(t *testing.T) {
 	db := New(da, "res", "sec")
 	tx := &daTx{"1234", db, ctx}
 	b := NewBatch(`UPDATE * WHERE bar = :foos`).
-		Append(sql.Named("foo", "foo1")).
-		Append(sql.Named("foo", "foo1"))
+		Query(sql.Named("foo", "foo1")).
+		Exec(sql.Named("foo", "foo1"))
 
 	res, err := tx.ExecBatch(ctx, b)
 	if err != nil {

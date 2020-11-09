@@ -16,31 +16,42 @@ func TestDBExecOK(t *testing.T) {
 	db := New(da, "arn:aws:rds:", "arn:aws:secret:")
 	query := `SELECT * FROM foo WHERE bar = :fbar`
 
-	res, err := db.Exec(ctx, query, sql.Named("fbar", "foo"))
-	if err != nil {
-		t.Fatalf("got: %v", err)
+	// exec an query do the same thing with the data api
+	for i := 0; i < 2; i++ {
+		var res Result
+		var err error
+		if i == 0 {
+			res, err = db.Exec(ctx, query, sql.Named("fbar", "foo"))
+		} else {
+			res, err = db.Query(ctx, query, sql.Named("fbar", "foo"))
+		}
+
+		if err != nil {
+			t.Fatalf("got: %v", err)
+		}
+
+		if act := aws.StringValue(da.lastESI.ResourceArn); act != "arn:aws:rds:" {
+			t.Fatalf("got: %v", act)
+		}
+
+		if act := aws.StringValue(da.lastESI.SecretArn); act != "arn:aws:secret:" {
+			t.Fatalf("got: %v", act)
+		}
+
+		if act := aws.StringValue(da.lastESI.Sql); act != query {
+			t.Fatalf("got: %v", act)
+		}
+
+		if len(da.lastESI.Parameters) < 1 || aws.StringValue(da.lastESI.Parameters[0].Name) != `fbar` ||
+			aws.StringValue(da.lastESI.Parameters[0].Value.StringValue) != `foo` {
+			t.Fatalf("got: %s", da.lastESI.Parameters)
+		}
+
+		if res == nil {
+			t.Fatalf("got: %v", res)
+		}
 	}
 
-	if act := aws.StringValue(da.lastESI.ResourceArn); act != "arn:aws:rds:" {
-		t.Fatalf("got: %v", act)
-	}
-
-	if act := aws.StringValue(da.lastESI.SecretArn); act != "arn:aws:secret:" {
-		t.Fatalf("got: %v", act)
-	}
-
-	if act := aws.StringValue(da.lastESI.Sql); act != query {
-		t.Fatalf("got: %v", act)
-	}
-
-	if len(da.lastESI.Parameters) < 1 || aws.StringValue(da.lastESI.Parameters[0].Name) != `fbar` ||
-		aws.StringValue(da.lastESI.Parameters[0].Value.StringValue) != `foo` {
-		t.Fatalf("got: %s", da.lastESI.Parameters)
-	}
-
-	if res == nil {
-		t.Fatalf("got: %v", res)
-	}
 }
 
 func TestDBExecArgErr(t *testing.T) {
@@ -114,8 +125,8 @@ func TestDBBatch(t *testing.T) {
 	db := New(da, "arn:aws:rds:", "arn:aws:secret:")
 
 	b := NewBatch(`UPDATE * WHERE bar = :foos`).
-		Append(sql.Named("foo", "foo1")).
-		Append(sql.Named("foo", "foo1"))
+		Exec(sql.Named("foo", "foo1")).
+		Query(sql.Named("foo", "foo1"))
 
 	res, err := db.ExecBatch(ctx, b)
 	if err != nil {
@@ -128,7 +139,7 @@ func TestDBBatch(t *testing.T) {
 }
 
 func TestDBBatchArgErr(t *testing.T) {
-	b := NewBatch(`UPDATE * WHERE bar = :foos`).Append(sql.Named("foo", func() {}))
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).Query(sql.Named("foo", func() {}))
 
 	_, err := New(nil, "", "").ExecBatch(nil, b)
 	if err == nil {
@@ -143,7 +154,7 @@ func TestDBBatchArgErr(t *testing.T) {
 
 func TestDBBatchAwsErr(t *testing.T) {
 	da := &stubDA{nextBESOE: awserr.New("400", "foo", nil)}
-	b := NewBatch(`UPDATE * WHERE bar = :foos`).Append(sql.Named("foo", "bar"))
+	b := NewBatch(`UPDATE * WHERE bar = :foos`).Exec(sql.Named("foo", "bar"))
 
 	_, err := New(da, "", "").ExecBatch(nil, b)
 	if err == nil {

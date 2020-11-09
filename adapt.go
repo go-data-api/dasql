@@ -70,14 +70,28 @@ func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Resul
 func (tx *stdTx) Commit() error   { return tx.tx.Commit() }
 func (tx *stdTx) Rollback() error { return tx.tx.Rollback() }
 func (tx *stdTx) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
-	stmt, err := tx.tx.PrepareContext(ctx, b.q)
+	// @TODO group into a utility function that takes a sql.Stmt
+	stmt, err := tx.tx.PrepareContext(ctx, b.sql)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, args := range b.p {
-		_, _ = args, stmt
+	for _, args := range b.qrys {
+		rows, err := stmt.Query(args...)
+		if err != nil {
+			// @TODO collect all errors
+		}
+		_ = rows // @TODO turn rows into our result struct
 	}
 
+	for _, args := range b.exes {
+		res, err := stmt.Exec(args...)
+		if err != nil {
+			// @TODO collect errors
+		}
+		_ = res // @TODO turn into our our result struct
+	}
+
+	// @TODO close statemetn
 	return nil, nil
 }

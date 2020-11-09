@@ -77,8 +77,8 @@ func (db *DB) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
 
 // execBatch is the private implementation for batching with support for doing it as part of a tx
 func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Result, err error) {
-	params := make([][]*rdsdataservice.SqlParameter, len(b.p))
-	for i, bp := range b.p {
+	params := make([][]*rdsdataservice.SqlParameter, len(b.qrys)+len(b.exes))
+	for i, bp := range append(b.qrys, b.exes...) {
 		params[i], err = ConvertArgs(bp...)
 		if err != nil {
 			return nil, err
@@ -88,7 +88,7 @@ func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Result
 	in := (&rdsdataservice.BatchExecuteStatementInput{}).
 		SetResourceArn(db.resourceARN).
 		SetSecretArn(db.secretARN).
-		SetSql(b.q).
+		SetSql(b.sql).
 		SetParameterSets(params)
 
 	if tid != "" {
