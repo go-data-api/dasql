@@ -41,3 +41,5 @@ fix that: https://github.com/aws/aws-sdk-go/issues/3628
 - [ ] SHOULD add options for configuring defaults for: database name and schema. Both by default
              and maybe per BeginTransaction() and ExecuteStatement()
 - [ ] MUST   implement batch query/execute
+- [ ] COULD  add option to safely ignore rollback errors by adding a logging option that makes
+             any rollback errors visible

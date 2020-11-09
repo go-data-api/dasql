@@ -11,6 +11,7 @@ import (
 type Tx interface {
 	Exec(ctx context.Context, q string, args ...interface{}) (Result, error)
 	Commit() error
+	Rollback() error
 }
 
 // daTx implements the Tx interface for the Data API
@@ -35,6 +36,21 @@ func (tx daTx) Commit() error {
 	_, err := tx.db.da.CommitTransactionWithContext(tx.ctx, &in)
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+// Roolback the transaction
+func (tx daTx) Rollback() error {
+	var in rdsdataservice.RollbackTransactionInput
+	in.SetResourceArn(tx.db.resourceARN)
+	in.SetSecretArn(tx.db.secretARN)
+	in.SetTransactionId(tx.id)
+
+	_, err := tx.db.da.RollbackTransactionWithContext(tx.ctx, &in)
+	if err != nil {
+		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
 	return nil
