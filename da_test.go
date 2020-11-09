@@ -9,7 +9,13 @@ import (
 var _ DA = &stubDA{}
 
 type stubDA struct {
-	lastESI *rdsdataservice.ExecuteStatementInput // last execute statement input
+	lastESI  *rdsdataservice.ExecuteStatementInput
+	nextESO  *rdsdataservice.ExecuteStatementOutput
+	nextESOE error
+
+	lastBTI  *rdsdataservice.BeginTransactionInput
+	nextBTO  *rdsdataservice.BeginTransactionOutput
+	nextBTOE error
 }
 
 func (s *stubDA) ExecuteStatementWithContext(
@@ -17,14 +23,15 @@ func (s *stubDA) ExecuteStatementWithContext(
 	in *rdsdataservice.ExecuteStatementInput,
 	opts ...request.Option) (out *rdsdataservice.ExecuteStatementOutput, err error) {
 	s.lastESI = in
-	return
+	return s.nextESO, s.nextESOE
 }
 
 func (s *stubDA) BeginTransactionWithContext(
-	aws.Context,
-	*rdsdataservice.BeginTransactionInput,
-	...request.Option) (out *rdsdataservice.BeginTransactionOutput, err error) {
-	return
+	ctx aws.Context,
+	in *rdsdataservice.BeginTransactionInput,
+	opts ...request.Option) (out *rdsdataservice.BeginTransactionOutput, err error) {
+	s.lastBTI = in
+	return s.nextBTO, s.nextBTOE
 }
 
 func (s *stubDA) CommitTransactionWithContext(

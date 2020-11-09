@@ -38,3 +38,5 @@ fix that: https://github.com/aws/aws-sdk-go/issues/3628
 - [ ] SHOULD support https://golang.org/pkg/database/sql/#Rows.ColumnTypes 
              and https://golang.org/pkg/database/sql/#Rows.Columns on result type
 - [ ] SHOULD rollback the transaction when the ctx is cancelled like https://godoc.org/database/sql#DB.BeginTx
+- [ ] SHOULD add options for configuring defaults for: database name and schema. Both by default
+             and maybe per BeginTransaction() and ExecuteStatement()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
@@ -18,6 +19,20 @@ type DB struct {
 // New initializes the database abstraction
 func New(da DA, resourceARN, secretARN string) *DB {
 	return &DB{secretARN, resourceARN, da}
+}
+
+// Tx begins a transaction. The provided context will be used for the duration of that transaction.
+func (db *DB) Tx(ctx context.Context) (Tx, error) {
+	var in rdsdataservice.BeginTransactionInput
+	in.SetResourceArn(db.resourceARN)
+	in.SetSecretArn(db.secretARN)
+
+	out, err := db.da.BeginTransactionWithContext(ctx, &in)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	return &daTx{aws.StringValue(out.TransactionId), db}, nil
 }
 
 // Exec executes SQL.The args are for any placeholder parameters in the query.
