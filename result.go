@@ -1,6 +1,10 @@
 package dasql
 
-import "github.com/aws/aws-sdk-go/service/rdsdataservice"
+import (
+	"errors"
+
+	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+)
 
 // Result represents the results of an SQL execution.
 type Result interface {
@@ -23,8 +27,14 @@ func (r *daResult) Next() bool {
 
 // Scan the current result set
 func (r *daResult) Scan(dest ...interface{}) (err error) {
-	// @TODO assert that r.pos >= 0
-	// @TODO assert that len(dest) == len(recs)
+	switch {
+	case r.pos < 0:
+		return errors.New("dasql: scan called before next")
+	case r.pos > len(r.recs)-1:
+		return errors.New("dasql: scan called out-of-range")
+	case len(r.recs[r.pos]) != len(dest):
+		return errors.New("dasql: not enough arguments to scan row")
+	}
 
 	return Scan(r.recs[r.pos], dest...)
 }

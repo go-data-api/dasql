@@ -1,6 +1,7 @@
 package dasql
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,4 +21,27 @@ func TestResultScan(t *testing.T) {
 	if s1 != "foo" {
 		t.Fatalf("got: %v", s1)
 	}
+}
+
+func TestScanErrors(t *testing.T) {
+	t.Run("next not called", func(t *testing.T) {
+		err := (&daResult{pos: -1}).Scan()
+		if err == nil || !strings.Contains(err.Error(), "next") {
+			t.Fatalf("got: %v", err)
+		}
+	})
+
+	t.Run("out-of-range", func(t *testing.T) {
+		err := (&daResult{}).Scan()
+		if err == nil || !strings.Contains(err.Error(), "out-of-range") {
+			t.Fatalf("got: %v", err)
+		}
+	})
+
+	t.Run("out-of-range", func(t *testing.T) {
+		err := (&daResult{recs: [][]*rdsdataservice.Field{{}}}).Scan(nil, nil)
+		if err == nil || !strings.Contains(err.Error(), "not enough") {
+			t.Fatalf("got: %v", err)
+		}
+	})
 }
