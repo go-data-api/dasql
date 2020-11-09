@@ -17,7 +17,7 @@ func TestTxExec(t *testing.T) {
 	db := New(da, "res", "sec")
 	tx := &daTx{"1234", db, ctx}
 
-	res, err := tx.Exec(ctx, `SELECT * FROM foo`)
+	res, err := tx.Query(ctx, `SELECT * FROM foo`)
 	if err != nil {
 		t.Fatalf("got: %v", err)
 	}
@@ -30,6 +30,8 @@ func TestTxExec(t *testing.T) {
 		t.Fatalf("got: %v", res)
 	}
 }
+
+// @TODO test Tx.Exec
 
 func TestTxCommit(t *testing.T) {
 	da, ctx := &stubDA{}, context.Background()

@@ -10,6 +10,7 @@ Interact with the AWS Aurora Data API using an interface that resembles "databas
 - [ ] It only supports named parameters for real
 - [ ] It is possible to add operations to a single transaction async (from different processes).
       If so: add a Continue() method to the db that takes a transaction id and returns a tx
+- [ ] Does the Data API (and a std prepared stmt) allow execs and queries mixed in 
 
 ## limitations
 - The RDS Data API doesn't return datetime/date/timestamp field values specifically. So a sql.Scanner

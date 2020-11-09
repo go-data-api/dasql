@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
-func TestResultScan(t *testing.T) {
-	res := &daResult{recs: [][]*rdsdataservice.Field{{{StringValue: aws.String("foo")}}}, pos: -1}
+func TestRowScan(t *testing.T) {
+	res := &daRows{recs: [][]*rdsdataservice.Field{{{StringValue: aws.String("foo")}}}, pos: -1}
 
 	var s1 string
 	for res.Next() {
@@ -23,23 +23,23 @@ func TestResultScan(t *testing.T) {
 	}
 }
 
-func TestScanErrors(t *testing.T) {
+func TestRowScanErrors(t *testing.T) {
 	t.Run("next not called", func(t *testing.T) {
-		err := (&daResult{pos: -1}).Scan()
+		err := (&daRows{pos: -1}).Scan()
 		if err == nil || !strings.Contains(err.Error(), "next") {
 			t.Fatalf("got: %v", err)
 		}
 	})
 
 	t.Run("out-of-range", func(t *testing.T) {
-		err := (&daResult{}).Scan()
+		err := (&daRows{}).Scan()
 		if err == nil || !strings.Contains(err.Error(), "out-of-range") {
 			t.Fatalf("got: %v", err)
 		}
 	})
 
 	t.Run("out-of-range", func(t *testing.T) {
-		err := (&daResult{recs: [][]*rdsdataservice.Field{{}}}).Scan(nil, nil)
+		err := (&daRows{recs: [][]*rdsdataservice.Field{{}}}).Scan(nil, nil)
 		if err == nil || !strings.Contains(err.Error(), "not enough") {
 			t.Fatalf("got: %v", err)
 		}

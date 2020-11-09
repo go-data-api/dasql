@@ -11,51 +11,46 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
-func TestDBExecOK(t *testing.T) {
+func TestDBQueryOK(t *testing.T) {
 	da, ctx := &stubDA{nextESO: &rdsdataservice.ExecuteStatementOutput{}}, context.Background()
 	db := New(da, "arn:aws:rds:", "arn:aws:secret:")
 	query := `SELECT * FROM foo WHERE bar = :fbar`
 
 	// exec an query do the same thing with the data api
-	for i := 0; i < 2; i++ {
-		var res Result
-		var err error
-		if i == 0 {
-			res, err = db.Exec(ctx, query, sql.Named("fbar", "foo"))
-		} else {
-			res, err = db.Query(ctx, query, sql.Named("fbar", "foo"))
-		}
 
-		if err != nil {
-			t.Fatalf("got: %v", err)
-		}
-
-		if act := aws.StringValue(da.lastESI.ResourceArn); act != "arn:aws:rds:" {
-			t.Fatalf("got: %v", act)
-		}
-
-		if act := aws.StringValue(da.lastESI.SecretArn); act != "arn:aws:secret:" {
-			t.Fatalf("got: %v", act)
-		}
-
-		if act := aws.StringValue(da.lastESI.Sql); act != query {
-			t.Fatalf("got: %v", act)
-		}
-
-		if len(da.lastESI.Parameters) < 1 || aws.StringValue(da.lastESI.Parameters[0].Name) != `fbar` ||
-			aws.StringValue(da.lastESI.Parameters[0].Value.StringValue) != `foo` {
-			t.Fatalf("got: %s", da.lastESI.Parameters)
-		}
-
-		if res == nil {
-			t.Fatalf("got: %v", res)
-		}
+	res, err := db.Query(ctx, query, sql.Named("fbar", "foo"))
+	if err != nil {
+		t.Fatalf("got: %v", err)
 	}
 
+	if act := aws.StringValue(da.lastESI.ResourceArn); act != "arn:aws:rds:" {
+		t.Fatalf("got: %v", act)
+	}
+
+	if act := aws.StringValue(da.lastESI.SecretArn); act != "arn:aws:secret:" {
+		t.Fatalf("got: %v", act)
+	}
+
+	if act := aws.StringValue(da.lastESI.Sql); act != query {
+		t.Fatalf("got: %v", act)
+	}
+
+	if len(da.lastESI.Parameters) < 1 || aws.StringValue(da.lastESI.Parameters[0].Name) != `fbar` ||
+		aws.StringValue(da.lastESI.Parameters[0].Value.StringValue) != `foo` {
+		t.Fatalf("got: %s", da.lastESI.Parameters)
+	}
+
+	if res == nil {
+		t.Fatalf("got: %v", res)
+	}
+}
+
+func TestDBExecOK(t *testing.T) {
+	// @TODO implement
 }
 
 func TestDBExecArgErr(t *testing.T) {
-	_, err := New(nil, "", "").Exec(nil, ``, sql.Named("bogus", func() {}))
+	_, err := New(nil, "", "").Query(nil, ``, sql.Named("bogus", func() {}))
 	if err == nil {
 		t.Fatalf("got: %v", err)
 	}
@@ -69,7 +64,7 @@ func TestDBExecArgErr(t *testing.T) {
 func TestDBExecArgAwsErr(t *testing.T) {
 	da := &stubDA{nextESOE: awserr.New("400", "foo", nil)}
 
-	_, err := New(da, "", "").Exec(nil, ``, sql.Named("foo", "bar"))
+	_, err := New(da, "", "").Query(nil, ``, sql.Named("foo", "bar"))
 	if err == nil {
 		t.Fatalf("got: %v", err)
 	}
@@ -133,7 +128,7 @@ func TestDBBatch(t *testing.T) {
 		t.Fatalf("got: %v", err)
 	}
 
-	if len(res) != 2 || res[0].(*daResult).genFields == nil {
+	if len(res) != 2 || res[0].(*daRows).genFields == nil {
 		t.Fatalf("got: %v", res)
 	}
 }

@@ -6,27 +6,27 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
-// Result represents the results of an SQL execution.
-type Result interface {
+// Rows represents the results of an SQL execution.
+type Rows interface {
 	Next() bool
 	Scan(dest ...interface{}) (err error)
 }
 
-// daResult implements the Result interface for the Data API
-type daResult struct {
+// daRows implements the Rows interface for the Data API
+type daRows struct {
 	genFields []*rdsdataservice.Field
 	recs      [][]*rdsdataservice.Field
 	pos       int
 }
 
 // Next will prepare the next results for scanning
-func (r *daResult) Next() bool {
+func (r *daRows) Next() bool {
 	r.pos++
 	return r.pos < len(r.recs)
 }
 
 // Scan the current result set
-func (r *daResult) Scan(dest ...interface{}) (err error) {
+func (r *daRows) Scan(dest ...interface{}) (err error) {
 	switch {
 	case r.pos < 0:
 		return errors.New("dasql: scan called before next")

@@ -13,7 +13,7 @@ func Adapt(db *sql.DB) *StdDB { return &StdDB{db} }
 type StdDB struct{ db *sql.DB }
 
 // Exec executes sql for a query that doesn't return any results
-func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
+func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	res, err := db.db.ExecContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Resul
 }
 
 // Query executes sql for a query that is expected to return rows
-func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Result, error) {
+func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	rows, err := db.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (db *StdDB) Tx(ctx context.Context) (Tx, error) {
 // stdTx wraps *sql.Tx while implementing this package's Tx interface
 type stdTx struct{ tx *sql.Tx }
 
-func (tx *stdTx) Query(ctx context.Context, q string, args ...interface{}) (Result, error) {
+func (tx *stdTx) Query(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	rows, err := tx.tx.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -59,17 +59,18 @@ func (tx *stdTx) Query(ctx context.Context, q string, args ...interface{}) (Resu
 	_ = rows // @TODO turn into result
 	return nil, nil
 }
-func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
+func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	res, err := tx.tx.ExecContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
+
 	_ = res // @TODO turn into Result
 	return nil, nil
 }
 func (tx *stdTx) Commit() error   { return tx.tx.Commit() }
 func (tx *stdTx) Rollback() error { return tx.tx.Rollback() }
-func (tx *stdTx) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
+func (tx *stdTx) ExecBatch(ctx context.Context, b *Batch) ([]Rows, error) {
 	// @TODO group into a utility function that takes a sql.Stmt
 	stmt, err := tx.tx.PrepareContext(ctx, b.sql)
 	if err != nil {
