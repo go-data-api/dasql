@@ -128,7 +128,7 @@ func TestDBBatch(t *testing.T) {
 		t.Fatalf("got: %v", err)
 	}
 
-	if len(res) != 2 || res[0].(*daRows).genFields == nil {
+	if len(res) != 2 || res[0].(*daResult).generatedFields == nil {
 		t.Fatalf("got: %v", res)
 	}
 }

@@ -47,7 +47,7 @@ func (db *DB) query(ctx context.Context, tid string, q string, args ...interface
 		return nil, err
 	}
 
-	return &daRows{out.GeneratedFields, out.Records, -1}, nil
+	return &daRows{out.Records, -1}, nil
 }
 
 // Exec executes SQL.The args are for any named parameters in the query.
@@ -62,29 +62,10 @@ func (db *DB) exec(ctx context.Context, tid string, q string, args ...interface{
 		return nil, err
 	}
 
-	_ = out // @TODO transform result into a result without rows
-	return &daResult{numRecordsUpdated: aws.Int64Value(out.NumberOfRecordsUpdated)}, nil
-	// params, err := ConvertArgs(args...)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("dasql: failed to convert arguments: %w", err)
-	// }
-
-	// in := (&rdsdataservice.ExecuteStatementInput{}).
-	// 	SetResourceArn(db.resourceARN).
-	// 	SetSecretArn(db.secretARN).
-	// 	SetSql(q).
-	// 	SetParameters(params)
-
-	// if tid != "" {
-	// 	in.SetTransactionId(tid)
-	// }
-
-	// out, err := db.da.ExecuteStatementWithContext(ctx, in)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("dasql: failed to execute statement: %w", err)
-	// }
-
-	// return &daRows{out.GeneratedFields, out.Records, -1}, nil
+	return &daResult{
+		numRecordsUpdated: aws.Int64Value(out.NumberOfRecordsUpdated),
+		generatedFields:   out.GeneratedFields,
+	}, nil
 }
 
 // execStatement calls the actual data api for executing both query and exec.
@@ -118,12 +99,12 @@ func (db *DB) execStatement(
 }
 
 // ExecBatch will execute the batch.
-func (db *DB) ExecBatch(ctx context.Context, b *Batch) ([]Rows, error) {
+func (db *DB) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
 	return db.execBatch(ctx, "", b)
 }
 
 // execBatch is the private implementation for batching with support for doing it as part of a tx.
-func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Rows, err error) {
+func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Result, err error) {
 	params := make([][]*rdsdataservice.SqlParameter, len(b.qrys)+len(b.exes))
 	for i, bp := range append(b.qrys, b.exes...) {
 		params[i], err = ConvertArgs(bp...)
@@ -148,7 +129,7 @@ func (db *DB) execBatch(ctx context.Context, tid string, b *Batch) (res []Rows, 
 	}
 
 	for _, upres := range out.UpdateResults {
-		res = append(res, &daRows{genFields: upres.GeneratedFields, pos: -1})
+		res = append(res, &daResult{generatedFields: upres.GeneratedFields})
 	}
 
 	return res, nil

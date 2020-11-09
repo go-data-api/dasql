@@ -12,6 +12,10 @@ func Adapt(db *sql.DB) *StdDB { return &StdDB{db} }
 // StdDB wraps a *sql.DB
 type StdDB struct{ db *sql.DB }
 
+func (db *StdDB) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
+	return nil, nil
+}
+
 // Query executes sql for a query that is expected to return rows
 func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	rows, err := db.db.QueryContext(ctx, q, args...)
@@ -21,7 +25,6 @@ func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Rows
 
 	// load all results in to the iterator. But how to call scan? How to close?
 	_ = rows
-
 	return nil, nil
 }
 
@@ -34,7 +37,6 @@ func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Resul
 
 	// @TODO fold res into a Result implementation
 	_ = res
-
 	return nil, nil
 }
 
@@ -70,7 +72,7 @@ func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Resul
 }
 func (tx *stdTx) Commit() error   { return tx.tx.Commit() }
 func (tx *stdTx) Rollback() error { return tx.tx.Rollback() }
-func (tx *stdTx) ExecBatch(ctx context.Context, b *Batch) ([]Rows, error) {
+func (tx *stdTx) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
 	// @TODO group into a utility function that takes a sql.Stmt
 	stmt, err := tx.tx.PrepareContext(ctx, b.sql)
 	if err != nil {

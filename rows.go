@@ -14,9 +14,8 @@ type Rows interface {
 
 // daRows implements the Rows interface for the Data API
 type daRows struct {
-	genFields []*rdsdataservice.Field
-	recs      [][]*rdsdataservice.Field
-	pos       int
+	recs [][]*rdsdataservice.Field
+	pos  int
 }
 
 // Next will prepare the next results for scanning

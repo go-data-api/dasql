@@ -6,6 +6,7 @@ import "context"
 type TXDB interface {
 	Exec(ctx context.Context, q string, args ...interface{}) (Result, error)
 	Query(ctx context.Context, q string, args ...interface{}) (Rows, error)
+	ExecBatch(ctx context.Context, b *Batch) ([]Result, error)
 }
 
 var _ TXDB = &StdDB{}

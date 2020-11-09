@@ -11,9 +11,9 @@ import (
 type Tx interface {
 	Query(ctx context.Context, q string, args ...interface{}) (Rows, error)
 	Exec(ctx context.Context, q string, args ...interface{}) (Result, error)
+	ExecBatch(ctx context.Context, b *Batch) ([]Result, error)
 	Commit() error
 	Rollback() error
-	ExecBatch(ctx context.Context, b *Batch) ([]Rows, error)
 }
 
 // daTx implements the Tx interface for the Data API
@@ -34,7 +34,7 @@ func (tx daTx) Exec(ctx context.Context, q string, args ...interface{}) (Result,
 }
 
 // ExecBatch executes the batch as part the transaction
-func (tx daTx) ExecBatch(ctx context.Context, b *Batch) ([]Rows, error) {
+func (tx daTx) ExecBatch(ctx context.Context, b *Batch) ([]Result, error) {
 	return tx.db.execBatch(ctx, tx.id, b)
 }
 
