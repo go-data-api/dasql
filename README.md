@@ -3,6 +3,7 @@ Interact with the AWS Aurora Data API using an interface that resembles "databas
 
 ## features
 - Simple, only depends on the official AWS SDK for Go
+- Interface designed to easily adapt a standard sql database to it
 
 ## research
 - [ ] Figure out what the Data API return in case of datetime,date and timestamp column types

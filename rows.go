@@ -10,6 +10,7 @@ import (
 type Rows interface {
 	Next() bool
 	Scan(dest ...interface{}) (err error)
+	Close() error
 }
 
 // daRows implements the Rows interface for the Data API
@@ -37,3 +38,6 @@ func (r *daRows) Scan(dest ...interface{}) (err error) {
 
 	return Scan(r.recs[r.pos], dest...)
 }
+
+// Close does nothing for Data API abstraction since ther is no cursor to close
+func (r *daRows) Close() error { return nil }
