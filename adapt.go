@@ -12,19 +12,6 @@ func Adapt(db *sql.DB) *StdDB { return &StdDB{db} }
 // StdDB wraps a *sql.DB
 type StdDB struct{ db *sql.DB }
 
-// Exec executes sql for a query that doesn't return any results
-func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Rows, error) {
-	res, err := db.db.ExecContext(ctx, q, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	// @TODO fold res into a Result implementation
-	_ = res
-
-	return nil, nil
-}
-
 // Query executes sql for a query that is expected to return rows
 func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Rows, error) {
 	rows, err := db.db.QueryContext(ctx, q, args...)
@@ -34,6 +21,19 @@ func (db *StdDB) Query(ctx context.Context, q string, args ...interface{}) (Rows
 
 	// load all results in to the iterator. But how to call scan? How to close?
 	_ = rows
+
+	return nil, nil
+}
+
+// Exec executes sql for a query that doesn't return any results
+func (db *StdDB) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
+	res, err := db.db.ExecContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	// @TODO fold res into a Result implementation
+	_ = res
 
 	return nil, nil
 }
@@ -59,7 +59,7 @@ func (tx *stdTx) Query(ctx context.Context, q string, args ...interface{}) (Rows
 	_ = rows // @TODO turn into result
 	return nil, nil
 }
-func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Rows, error) {
+func (tx *stdTx) Exec(ctx context.Context, q string, args ...interface{}) (Result, error) {
 	res, err := tx.tx.ExecContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
