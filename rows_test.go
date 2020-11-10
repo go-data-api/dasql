@@ -21,6 +21,10 @@ func TestRowScan(t *testing.T) {
 	if s1 != "foo" {
 		t.Fatalf("got: %v", s1)
 	}
+
+	if err := res.Close(); err != nil {
+		t.Fatalf("got: %v", err)
+	}
 }
 
 func TestRowScanErrors(t *testing.T) {
