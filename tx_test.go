@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 )
 
-func TestTxExec(t *testing.T) {
+func TestTxQuery(t *testing.T) {
 	da, ctx := &stubDA{nextESO: &rdsdataservice.ExecuteStatementOutput{}}, context.Background()
 	db := New(da, "res", "sec")
 	tx := &daTx{"1234", db, ctx}
@@ -31,7 +31,24 @@ func TestTxExec(t *testing.T) {
 	}
 }
 
-// @TODO test Tx.Exec
+func TestTxExec(t *testing.T) {
+	da, ctx := &stubDA{nextESO: &rdsdataservice.ExecuteStatementOutput{}}, context.Background()
+	db := New(da, "res", "sec")
+	tx := &daTx{"1234", db, ctx}
+
+	res, err := tx.Exec(ctx, `INSERT INTO foo (bar, rab) VALUES (:bar)`)
+	if err != nil {
+		t.Fatalf("got: %v", err)
+	}
+
+	if act := aws.StringValue(da.lastESI.TransactionId); act != "1234" {
+		t.Fatalf("got: %v", act)
+	}
+
+	if res == nil {
+		t.Fatalf("got: %v", res)
+	}
+}
 
 func TestTxCommit(t *testing.T) {
 	da, ctx := &stubDA{}, context.Background()
