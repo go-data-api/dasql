@@ -1,0 +1,22 @@
+Resources:
+  DatabaseMysqlCredentials:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "root"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+  DatabaseMysqlCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      EngineMode: serverless
+      EnableHttpEndpoint: true
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref DatabaseMysqlCredentials, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref DatabaseMysqlCredentials, ':SecretString:password}}' ]]
+      ScalingConfiguration:
+        AutoPause: true
+        MinCapacity: 1
+        MaxCapacity: 1
+        SecondsUntilAutoPause: 300 
