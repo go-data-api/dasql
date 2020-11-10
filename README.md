@@ -29,6 +29,9 @@ fix that: https://github.com/aws/aws-sdk-go/issues/3628
 streaming in data api version. If you're app requires streaming a large data set this is not 
 your tool.
 
+- Both the de-facto mysql and pgsql driver for Go don't support named parameters. but the datapi
+ONLY support named parameters. Simulating one for the other is hard and requires parsing SQL
+
 ## backlog
 - [ ] SHOULD implement scanning into *int, *int8, *int16, *int32, *uint, *uint8, *uint16, *uint32, 
              *uint64 instead of only int64
@@ -55,7 +58,8 @@ your tool.
              and maybe per BeginTransaction() and ExecuteStatement()
 - [ ] MUST   implement batch query/execute
 - [ ] COULD  add option to safely ignore rollback errors by adding a logging option that makes
-             any rollback errors visible
+             any rollback errors visible. Do the same for errors while closing rows, so defer 
+             Close() is also fine in those cases
 - [ ] SHOULD verify and document some of the data api limitations outlines in other libraries:
               - https://github.com/jeremydaly/data-api-client
 - [ ] COULD  expose the txid so users can commit or rollback transactions async. The data api allows
